@@ -11,7 +11,7 @@ sudo tailscale up
 sudo tailscale set -ssh
 
 ## Basic things
-sudo apt install build-essential clangd btop ripgrep lazygit xclip nvim
+sudo apt install build-essential clangd btop ripgrep lazygit xclip nvim tig
 
 # Generate the US English UTF-8 locale
 sudo locale-gen en_US.UTF-8
