@@ -1,0 +1,14 @@
+[general]
+import = [
+    "~/.config/alacritty/themes/themes/dayfox.toml"
+]
+
+[env]
+# Set the COLORTERM environment variable to indicate true color support
+term = "xterm-256color" # This might be needed for compatibility
+COLORTERM = "truecolor"
+
+[scrolling]
+history = 10000
+multiplier = 3 # Default is 3
+
