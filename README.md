@@ -6,6 +6,8 @@ TODO: Make a full install script. See `scratch.txt` for the setup process I note
 ```
 ln -s ./.i3_config ~/.config/i3/config
 
+ln -s ./.tmux.conf ~/.tmux.conf
+
 # Install themes first from https://github.com/alacritty/alacritty-theme
 ln -s ./alacritty.toml ~/.config/alacritty/alacritty.toml
 
