@@ -1,0 +1,174 @@
+# =============================================================================
+# Sway Configuration File
+# Migrated from i3 with full Wayland optimizations & Dvorak bindings.
+# =============================================================================
+
+# Set modifier key (Mod4 = Windows/Super key)
+set $mod Mod4
+
+# --- Input Configuration ---
+# Configures the default keyboard to Dvorak layout natively.
+input * {
+    xkb_layout "us"
+    xkb_variant "dvorak"
+}
+
+# Configures touchpad features natively (Replaces synclient)
+input "type:touchpad" {
+    dwt enabled
+    tap enabled
+    natural_scroll enabled
+}
+
+# --- Look and Feel ---
+font pango:monospace 8
+floating_modifier $mod
+tiling_drag enable
+
+# --- Native Wayland Autostarts ---
+# Modern screen locker and idle management (Replaces xss-lock/i3lock)
+# Locks screen after 10 minutes, turns off display after 15 minutes.
+exec swayidle -w \
+         timeout 600 'swaylock -f -c 000000' \
+         timeout 900 'swaymsg "output * power off"' resume 'swaymsg "output * power on"' \
+         before-sleep 'swaylock -f -c 000000'
+
+# Network Manager tray icon applet
+exec --no-startup-id nm-applet --indicator
+
+# --- Audio Control ---
+# Standard PulseAudio/PipeWire volume mappings
+bindsym XF86AudioRaiseVolume exec pactl set-sink-volume @DEFAULT_SINK@ +10%
+bindsym XF86AudioLowerVolume exec pactl set-sink-volume @DEFAULT_SINK@ -10%
+bindsym XF86AudioMute exec pactl set-sink-mute @DEFAULT_SINK@ toggle
+bindsym XF86AudioMicMute exec pactl set-source-mute @DEFAULT_SOURCE@ toggle
+
+# --- Core Applications ---
+# Start terminal
+bindsym $mod+Return exec alacritty
+
+# Kill focused window
+bindsym $mod+Shift+quotedbl kill
+bindcode $mod+Shift+24 kill
+
+# Application Launcher (Replaces dmenu with native Wayland wofi)
+# bindsym $mod+e exec wofi --show drun
+bindsym $mod+e exec bemenu-run -H 30 --fn "monospace 10"
+
+# --- Navigation (Dvorak HTNS Layout) ---
+# Change Focus
+bindsym $mod+h focus left
+bindsym $mod+t focus down
+bindsym $mod+n focus up
+bindsym $mod+s focus right
+
+# Change Focus via arrow keys
+bindsym $mod+Left focus left
+bindsym $mod+Down focus down
+bindsym $mod+Up focus up
+bindsym $mod+Right focus right
+
+# Move Focused Window
+bindsym $mod+Shift+H move left
+bindsym $mod+Shift+T move down
+bindsym $mod+Shift+N move up
+bindsym $mod+Shift+S move right
+
+# Move Focused Window via arrow keys
+bindsym $mod+Shift+Left move left
+bindsym $mod+Shift+Down move down
+bindsym $mod+Shift+Up move up
+bindsym $mod+Shift+Right move right
+
+# --- Layout Manipulation ---
+bindsym $mod+d split h
+bindsym $mod+k split v
+bindsym $mod+u fullscreen toggle
+
+bindsym $mod+o layout stacking
+bindsym $mod+comma layout tabbed
+bindsym $mod+period layout toggle split
+
+bindsym $mod+Shift+space floating toggle
+bindsym $mod+space focus mode_toggle
+bindsym $mod+a focus parent
+
+# --- Workspaces ---
+set $ws1 "1"
+set $ws2 "2"
+set $ws3 "3"
+set $ws4 "4"
+set $ws5 "5"
+set $ws6 "6"
+set $ws7 "7"
+set $ws8 "8"
+set $ws9 "9"
+set $ws10 "10"
+
+# Switch to Workspace
+bindsym $mod+1 workspace number $ws1
+bindsym $mod+2 workspace number $ws2
+bindsym $mod+3 workspace number $ws3
+bindsym $mod+4 workspace number $ws4
+bindsym $mod+5 workspace number $ws5
+bindsym $mod+6 workspace number $ws6
+bindsym $mod+7 workspace number $ws7
+bindsym $mod+8 workspace number $ws8
+bindsym $mod+9 workspace number $ws9
+bindsym $mod+0 workspace number $ws10
+
+# Move Container to Workspace
+bindsym $mod+Shift+1 move container to workspace number $ws1
+bindsym $mod+Shift+2 move container to workspace number $ws2
+bindsym $mod+Shift+3 move container to workspace number $ws3
+bindsym $mod+Shift+4 move container to workspace number $ws4
+bindsym $mod+Shift+5 move container to workspace number $ws5
+bindsym $mod+Shift+6 move container to workspace number $ws6
+bindsym $mod+Shift+7 move container to workspace number $ws7
+bindsym $mod+Shift+8 move container to workspace number $ws8
+bindsym $mod+Shift+9 move container to workspace number $ws9
+bindsym $mod+Shift+0 move container to workspace number $ws10
+
+# --- Session Control ---
+# Reload configuration
+bindsym $mod+Shift+J reload
+
+# Exit Sway (Replaces i3-nagbar with native swaynag)
+bindsym $mod+Shift+greater exec swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your Wayland session.' -B 'Yes, exit sway' 'swaymsg exit'
+
+# --- Window Resizing Mode ---
+mode "resize" {
+        bindsym h resize shrink width 10 px or 10 ppt
+        bindsym t resize grow height 10 px or 10 ppt
+        bindsym n resize shrink height 10 px or 10 ppt
+        bindsym s resize grow width 10 px or 10 ppt
+
+        bindsym Left resize shrink width 10 px or 10 ppt
+        bindsym Down resize grow height 10 px or 10 ppt
+        bindsym Up resize shrink height 10 px or 10 ppt
+        bindsym Right resize grow width 10 px or 10 ppt
+
+        bindsym Return mode "default"
+        bindsym Escape mode "default"
+        bindsym $mod+p mode "default"
+}
+bindsym $mod+p mode "resize"
+
+# --- Status Bar ---
+bar {
+#        position top
+        status_command i3status
+}
+
+################## Still figuring the rest of this out (4GB of ram will do this to a boi like me) ################
+
+# --- Disabling window borders n the like ---
+#default_border pixel 1
+#default_floating_border pixel 1
+#hide_edge_borders smart
+
+# --- Window Focus Colors ---
+# Class                 border  bground text    indicator child_border
+#client.focused          #0087ff #0087ff #ffffff #0087ff   #0087ff
+#client.focused_inactive #222222 #222222 #888888 #222222   #222222
+#client.unfocused        #222222 #222222 #888888 #222222   #222222
