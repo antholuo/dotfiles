@@ -11,7 +11,12 @@ sudo tailscale up
 sudo tailscale set -ssh
 
 ## Basic things
-sudo apt install build-essential clangd btop ripgrep lazygit xclip nvim tig git
+sudo apt install build-essential clangd btop ripgrep lazygit xclip nvim tig git flameshot
+
+## Things that I'm discovering in my i3 -> wayland migration
+sudo apt install wl-clipboard
+# Sway/flameshot will complain so we need to allow XDG Desktop Portal???
+# TODO
 
 # Generate the US English UTF-8 locale
 sudo locale-gen en_US.UTF-8
