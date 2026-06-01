@@ -3,6 +3,11 @@
 # Migrated from i3 with full Wayland optimizations & Dvorak bindings.
 # =============================================================================
 
+# Import environment variables for D-Bus and Systemd portals
+exec systemctl --user import-environment DISPLAY WAYLAND_DISPLAY SWAYSOCK XDG_CURRENT_DESKTOP
+exec hash dbus-update-activation-environment 2>/dev/null && \
+     dbus-update-activation-environment --systemd DISPLAY WAYLAND_DISPLAY SWAYSOCK XDG_CURRENT_DESKTOP
+
 # Set modifier key (Mod4 = Windows/Super key)
 set $mod Mod4
 
@@ -54,6 +59,9 @@ bindcode $mod+Shift+24 kill
 # Application Launcher (Replaces dmenu with native Wayland wofi)
 # bindsym $mod+e exec wofi --show drun
 bindsym $mod+e exec bemenu-run -H 30 --fn "monospace 10"
+
+# Log out with prompt
+bindcode Mod4+Shift+26 exec swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit Sway? This will end your Wayland session.' -B 'Yes, exit Sway' 'swaymsg exit'
 
 # --- Navigation (Dvorak HTNS Layout) ---
 # Change Focus
@@ -160,7 +168,13 @@ bar {
         status_command i3status
 }
 
-################## Still figuring the rest of this out (4GB of ram will do this to a boi like me) ################
+
+####################################################################
+################## Anni's Experimental Section #####################
+
+# Screengrab using flameshot
+# -c: copy to clipboard, -s: accept on release
+bindcode 202 exec flameshot gui -c -s
 
 # --- Disabling window borders n the like ---
 #default_border pixel 1
@@ -172,3 +186,5 @@ bar {
 #client.focused          #0087ff #0087ff #ffffff #0087ff   #0087ff
 #client.focused_inactive #222222 #222222 #888888 #222222   #222222
 #client.unfocused        #222222 #222222 #888888 #222222   #222222
+
+
