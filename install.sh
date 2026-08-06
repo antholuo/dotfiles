@@ -328,7 +328,7 @@ else
 fi
 
 # --------------------------------------------------------------------------
-# 12. Snaps (Spotify, Mattermost)
+# 12. Snaps (Spotify, optional Mattermost)
 # --------------------------------------------------------------------------
 if ! snap list spotify &>/dev/null 2>&1; then
     info "Installing Spotify..."
@@ -338,43 +338,57 @@ else
     ok "Spotify already installed"
 fi
 
-if ! snap list mattermost-desktop &>/dev/null 2>&1; then
-    info "Installing Mattermost Desktop..."
-    sudo snap install mattermost-desktop
-    ok "Mattermost Desktop installed"
-else
-    ok "Mattermost Desktop already installed"
-fi
-
-# --------------------------------------------------------------------------
-# 13. Claude Code CLI
-# --------------------------------------------------------------------------
-if ! command_exists claude; then
-    info "Installing Claude Code..."
-    curl -fsSL https://claude.ai/install.sh -o /tmp/install-claude.sh
-    chmod +x /tmp/install-claude.sh
-    /tmp/install-claude.sh
-    rm -f /tmp/install-claude.sh
-    ok "Claude Code installed"
-else
-    ok "Claude Code already installed: $(claude --version 2>/dev/null | head -1)"
-fi
-
-# --------------------------------------------------------------------------
-# 14. Grok CLI (public x.ai installer)
-# --------------------------------------------------------------------------
-if ! command_exists grok; then
-    info "Installing Grok CLI..."
-    if curl -fsSL https://x.ai/desktop/install.sh -o /tmp/install-grok.sh 2>/dev/null; then
-        bash /tmp/install-grok.sh
-        ok "Grok installed from x.ai"
+# Mattermost is optional. To enable, set INSTALL_EXTRAS=1 in your environment
+if [ "${INSTALL_EXTRAS:-0}" = "1" ]; then
+    if ! snap list mattermost-desktop &>/dev/null 2>&1; then
+        info "Installing Mattermost Desktop..."
+        sudo snap install mattermost-desktop
+        ok "Mattermost Desktop installed"
     else
-        warn "Grok install failed — install manually:"
-        warn "  curl -fsSL https://x.ai/desktop/install.sh | bash"
+        ok "Mattermost Desktop already installed"
     fi
-    rm -f /tmp/install-grok.sh
 else
-    ok "Grok already installed: $(grok --version 2>/dev/null | head -1)"
+    info "Skipping Mattermost Desktop (set INSTALL_EXTRAS=1 to enable)"
+fi
+
+# --------------------------------------------------------------------------
+# 13-14. Optional AI CLIs (Claude, Grok)
+# --------------------------------------------------------------------------
+# Claude and Grok installs are gated behind INSTALL_AI to avoid auto-installing
+# any AI/assistant binaries. To enable, set INSTALL_AI=1 in your environment.
+if [ "${INSTALL_AI:-0}" = "1" ]; then
+    # ----------------------------------------------------------------------
+    # Claude Code CLI
+    # ----------------------------------------------------------------------
+    if ! command_exists claude; then
+        info "Installing Claude Code..."
+        curl -fsSL https://claude.ai/install.sh -o /tmp/install-claude.sh
+        chmod +x /tmp/install-claude.sh
+        /tmp/install-claude.sh
+        rm -f /tmp/install-claude.sh
+        ok "Claude Code installed"
+    else
+        ok "Claude Code already installed: $(claude --version 2>/dev/null | head -1)"
+    fi
+
+    # ----------------------------------------------------------------------
+    # Grok CLI (public x.ai installer)
+    # ----------------------------------------------------------------------
+    if ! command_exists grok; then
+        info "Installing Grok CLI..."
+        if curl -fsSL https://x.ai/desktop/install.sh -o /tmp/install-grok.sh 2>/dev/null; then
+            bash /tmp/install-grok.sh
+            ok "Grok installed from x.ai"
+        else
+            warn "Grok install failed — install manually:"
+            warn "  curl -fsSL https://x.ai/desktop/install.sh | bash"
+        fi
+        rm -f /tmp/install-grok.sh
+    else
+        ok "Grok already installed: $(grok --version 2>/dev/null | head -1)"
+    fi
+else
+    info "Skipping optional AI CLIs (set INSTALL_AI=1 to enable Claude/Grok installs)"
 fi
 
 # --------------------------------------------------------------------------
