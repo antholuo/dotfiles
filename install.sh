@@ -11,6 +11,9 @@ ok()    { printf '\033[1;32m[ok]\033[0m    %s\n' "$*"; }
 warn()  { printf '\033[1;33m[warn]\033[0m  %s\n' "$*"; }
 die()   { printf '\033[1;31m[err]\033[0m   %s\n' "$*" >&2; exit 1; }
 
+skip()  { printf '\033[1;33m[skip]\033[0m  %s
+' "$*"; }
+
 command_exists() { command -v "$1" &>/dev/null; }
 
 # Run a cargo install but warn and continue on failure instead of aborting.
@@ -131,7 +134,7 @@ if ! locale -a 2>/dev/null | grep -qi "en_US.utf8"; then
     sudo update-locale LANG=en_US.UTF-8
     ok "Locale en_US.UTF-8 generated"
 else
-    ok "Locale en_US.UTF-8 already available"
+    skip "Locale en_US.UTF-8 already available"
 fi
 
 # --------------------------------------------------------------------------
@@ -148,7 +151,7 @@ if ! fc-list 2>/dev/null | grep -qi "Iosevka Nerd"; then
     rm /tmp/Iosevka.tar.xz
     ok "Iosevka Nerd Font installed"
 else
-    ok "Iosevka Nerd Font already installed"
+    skip "Iosevka Nerd Font already installed"
 fi
 
 # --------------------------------------------------------------------------
@@ -164,7 +167,7 @@ if ! command_exists nvim; then
     rm /tmp/nvim-linux-x86_64.tar.gz
     ok "Neovim ${NVIM_VERSION} installed to /opt/nvim-linux-x86_64"
 else
-    ok "Neovim already installed: $(nvim --version | head -1)"
+    skip "Neovim already installed: $(nvim --version | head -1)"
 fi
 
 # --------------------------------------------------------------------------
@@ -178,7 +181,7 @@ if [ ! -f "$LAZY_PATH/lua/lazy/init.lua" ]; then
         https://github.com/folke/lazy.nvim.git "$LAZY_PATH"
     ok "lazy.nvim installed"
 else
-    ok "lazy.nvim already present"
+    skip "lazy.nvim already present"
 fi
 
 # --------------------------------------------------------------------------
@@ -201,7 +204,7 @@ if ! command_exists starship; then
     curl -sS https://starship.rs/install.sh | sh -s -- --yes
     ok "Starship installed"
 else
-    ok "Starship already installed: $(starship --version | head -1)"
+    skip "Starship already installed: $(starship --version | head -1)"
 fi
 
 # --------------------------------------------------------------------------
@@ -214,7 +217,7 @@ if ! command_exists cargo; then
     source "$HOME/.cargo/env"
     ok "Rust installed"
 else
-    ok "Rust already installed"
+    skip "Rust already installed"
 fi
 
 # tree-sitter-cli (needed by nvim treesitter)
@@ -280,7 +283,7 @@ if [ ! -d "$ALACRITTY_THEMES_DIR" ]; then
     git clone --depth 1 https://github.com/alacritty/alacritty-theme "$ALACRITTY_THEMES_DIR"
     ok "Alacritty themes installed"
 else
-    ok "Alacritty themes already present"
+    skip "Alacritty themes already present"
 fi
 
 STARSHIP_TOML="$HOME/.config/starship.toml"
@@ -289,7 +292,7 @@ if [ ! -f "$STARSHIP_TOML" ]; then
     printf 'command_timeout = 3000\n' > "$STARSHIP_TOML"
     ok "Created $STARSHIP_TOML"
 else
-    ok "starship.toml already present"
+    skip "starship.toml already present"
 fi
 
 # --------------------------------------------------------------------------
@@ -308,7 +311,7 @@ else
     if ! grep -qE 'useGrim(Adapter)?=true' "$FLAMESHOT_INI" 2>/dev/null; then
         warn "Flameshot config exists but grim not enabled — set useGrimAdapter=true under [General] in $FLAMESHOT_INI"
     else
-        ok "Flameshot already configured with grim"
+        skip "Flameshot already configured with grim"
     fi
 fi
 
@@ -324,7 +327,7 @@ if ! command_exists google-chrome-stable && ! command_exists google-chrome; then
     rm /tmp/google-chrome.deb
     ok "Google Chrome installed"
 else
-    ok "Google Chrome already installed"
+    skip "Google Chrome already installed"
 fi
 
 # --------------------------------------------------------------------------
@@ -335,7 +338,7 @@ if ! snap list spotify &>/dev/null 2>&1; then
     sudo snap install spotify
     ok "Spotify installed"
 else
-    ok "Spotify already installed"
+    skip "Spotify already installed"
 fi
 
 # Mattermost is optional. To enable, set INSTALL_EXTRAS=1 in your environment
@@ -460,18 +463,29 @@ chmod +x "$DOTFILES_DIR/scripts/i3status-audio.sh" \
          "$DOTFILES_DIR/scripts/startup-terminals.sh"
 
 # --------------------------------------------------------------------------
-# 17. Set nvim as default editor system-wide
+# 17. Neovim plugin bootstrap (headless) & set nvim as default editor system-wide
 # --------------------------------------------------------------------------
 if command_exists nvim; then
+    info "Bootstrapping Neovim plugins (headless)..."
+    # Attempt a headless lazy.nvim sync; if it fails, advise interactive install.
+    if nvim --headless -c 'lua if pcall(require, "lazy") then require("lazy").sync() end' -c 'qa' >/dev/null 2>&1; then
+        ok "Neovim plugins bootstrapped (headless)"
+    else
+        warn "Neovim headless bootstrap failed — open nvim interactively to finish plugin installation"
+    fi
+
+    # set nvim as default editor system-wide if present under /opt (non-fatal)
     sudo update-alternatives --install /usr/bin/editor editor /opt/nvim-linux-x86_64/bin/nvim 60 2>/dev/null || true
     sudo update-alternatives --set editor /opt/nvim-linux-x86_64/bin/nvim 2>/dev/null || true
+else
+    skip "Neovim not installed; skipping plugin bootstrap and editor alternatives"
 fi
 
 # --------------------------------------------------------------------------
 # 18. Create ~/.secrets template if missing
 # --------------------------------------------------------------------------
 if [ -n "$FROM_HOST" ]; then
-    ok "~/.secrets will be handled by --from sync below — skipping template"
+    skip "~/.secrets will be handled by --from sync below — skipping template"
 elif [ ! -f "$HOME/.secrets" ]; then
     cat > "$HOME/.secrets" <<'SECRETS'
 # Shell secrets — sourced by .bashrc, never committed.
@@ -480,7 +494,7 @@ elif [ ! -f "$HOME/.secrets" ]; then
 SECRETS
     ok "Created ~/.secrets template — add your tokens there"
 else
-    ok "~/.secrets already exists"
+    skip "~/.secrets already exists"
 fi
 
 # --------------------------------------------------------------------------
