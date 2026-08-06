@@ -1,0 +1,40 @@
+# Performance-oriented defaults for large monorepos.
+# Refresh manually with R; fetch with f when needed.
+
+git:
+  # Don't background-fetch huge remote branch sets
+  autoFetch: false
+  fetchAll: false
+
+  # Don't re-scan files/submodules on an interval
+  autoRefresh: false
+
+  # Polling for external ref changes is expensive at monorepo scale
+  autoDetectExternalChanges: false
+
+  log:
+    # Graph rendering over huge histories is costly
+    showGraph: when-maximised
+    order: default
+    showWholeGraph: false
+
+  # Cheaper logs in the main pane
+  branchLogCmd: "git log --oneline --color=always --decorate -n 200 {{branchName}} --"
+  allBranchesLogCmds:
+    - "git log --oneline --color=always --decorate -n 100"
+
+gui:
+  # Hide submodules from the side-panel tabs (83 modules is slow)
+  sidePanels:
+    - [status]
+    - [files, worktrees]
+    - [branches, remotes, tags]
+    - [commits, reflog]
+    - [stash]
+  showNumstatInFilesView: false
+  animateExplosion: false
+
+refresher:
+  refreshInterval: 30
+  fetchInterval: 300
+  externalChangeCheckInterval: 30

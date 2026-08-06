@@ -1,0 +1,11 @@
+[user]
+	email = antholuo@users.noreply.github.com
+	name = Anthony Luo
+[push]
+	autoSetupRemote = true
+[core]
+	editor = nvim
+[init]
+	defaultBranch = main
+[safe]
+	directory = *

@@ -1,0 +1,216 @@
+Manual Setup Steps
+==================
+Step-by-step guide to set up a fresh Ubuntu/Debian machine.
+Run each section in order. Skip anything already installed.
+
+For a fuller inventory of the previous machine (apt-manual, snaps, cargo,
+/usr/local/bin, Docker/Chrome notes), see:
+
+    packages/MIGRATION.md
+
+
+1. System packages
+------------------
+# Preferred: run install.sh which uses the curated list in packages/apt-core.txt
+
+sudo apt update
+sudo apt install -y \
+    git tmux ripgrep fd-find bat curl wget unzip \
+    build-essential python3 python3-pip python3-venv python-is-python3 \
+    btop tig xclip wl-clipboard silversearcher-ag \
+    nodejs npm clang clangd jq ncdu net-tools usbutils \
+    openssh-server ca-certificates software-properties-common pipx \
+    sway swaybg swayidle swaylock i3status \
+    bemenu j4-dmenu-desktop grim flameshot alacritty \
+    xdg-desktop-portal xdg-desktop-portal-wlr \
+    bluez upower pulseaudio-utils \
+    pipewire pipewire-pulse wireplumber libspa-0.2-bluetooth \
+    mosh can-utils wireshark sshfs screen lrzsz pass
+
+# Fix Debian naming quirks
+sudo ln -sf $(which fdfind) /usr/local/bin/fd
+sudo ln -sf $(which batcat) /usr/local/bin/bat
+
+
+2. UTF-8 locale
+----------------
+sudo locale-gen en_US.UTF-8
+sudo update-locale LANG=en_US.UTF-8
+
+
+3. Iosevka Nerd Font
+---------------------
+mkdir -p ~/.local/share/fonts
+curl -L https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Iosevka.tar.xz -o /tmp/Iosevka.tar.xz
+tar -xf /tmp/Iosevka.tar.xz -C ~/.local/share/fonts
+fc-cache -fv
+rm /tmp/Iosevka.tar.xz
+
+
+4. Neovim
+---------
+curl -LO https://github.com/neovim/neovim/releases/download/v0.12.2/nvim-linux-x86_64.tar.gz
+sudo tar -C /opt -xzf nvim-linux-x86_64.tar.gz
+rm nvim-linux-x86_64.tar.gz
+
+# Add to PATH (already in bashrc, but verify):
+export PATH="$PATH:/opt/nvim-linux-x86_64/bin"
+
+# Set as default editor
+sudo update-alternatives --install /usr/bin/editor editor /opt/nvim-linux-x86_64/bin/nvim 60
+sudo update-alternatives --set editor /opt/nvim-linux-x86_64/bin/nvim
+
+
+5. fzf
+------
+git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+~/.fzf/install --bin --key-bindings --completion --no-update-rc
+
+
+6. Starship prompt
+------------------
+curl -sS https://starship.rs/install.sh | sh -s -- --yes
+
+# Optional minimal config (command_timeout):
+mkdir -p ~/.config
+printf 'command_timeout = 3000\n' > ~/.config/starship.toml
+
+
+7. Rust & Cargo
+---------------
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+source "$HOME/.cargo/env"
+
+# tree-sitter-cli (required by AstroNvim treesitter)
+cargo install --locked tree-sitter-cli
+
+# Bluetooth TUI (optional)
+cargo install --locked bluetui
+
+
+8. AstroNvim tools
+------------------
+These are the terminal tools AstroNvim integrates with keybindings.
+
+# lazygit (<Leader>gg / <Leader>tl)
+LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
+curl -Lo /tmp/lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+tar -xf /tmp/lazygit.tar.gz -C /tmp lazygit
+sudo install /tmp/lazygit /usr/local/bin
+rm /tmp/lazygit /tmp/lazygit.tar.gz
+
+# bottom (<Leader>tt) — process viewer
+cargo install --locked bottom
+
+# gdu (<Leader>tu) — disk usage
+curl -L https://github.com/dundee/gdu/releases/latest/download/gdu_linux_amd64.tgz -o /tmp/gdu.tgz
+tar -xf /tmp/gdu.tgz -C /tmp
+sudo install /tmp/gdu_linux_amd64 /usr/local/bin/gdu
+rm /tmp/gdu.tgz /tmp/gdu_linux_amd64
+
+
+9. Flameshot (Wayland/grim backend)
+-------------------------------------
+mkdir -p ~/.config/flameshot
+cat > ~/.config/flameshot/flameshot.ini <<'EOF'
+[General]
+useGrimAdapter=true
+EOF
+
+
+10. Alacritty themes
+--------------------
+mkdir -p ~/.config/alacritty
+git clone --depth 1 https://github.com/alacritty/alacritty-theme ~/.config/alacritty/themes
+
+
+11. Clone and link dotfiles
+----------------------------
+# Prefer: cd ~/Code/dotfiles && ./install.sh   (handles linking)
+
+git clone https://github.com/antholuo/dotfiles.git ~/Code/dotfiles
+cd ~/Code/dotfiles
+
+# Backup existing configs
+[ -f ~/.bashrc ] && mv ~/.bashrc ~/.bashrc.bak
+[ -f ~/.tmux.conf ] && mv ~/.tmux.conf ~/.tmux.conf.bak
+[ -d ~/.config/nvim ] && mv ~/.config/nvim ~/.config/nvim.bak
+
+# Create symlinks
+ln -s ~/Code/dotfiles/bashrc ~/.bashrc
+ln -s ~/Code/dotfiles/tmux.conf ~/.tmux.conf
+ln -s ~/Code/dotfiles/config/nvim ~/.config/nvim
+mkdir -p ~/.config/alacritty
+ln -s ~/Code/dotfiles/alacritty.toml ~/.config/alacritty/alacritty.toml
+mkdir -p ~/.config/sway && ln -s ~/Code/dotfiles/sway/config ~/.config/sway/config
+mkdir -p ~/.config/i3 && ln -s ~/Code/dotfiles/i3_config ~/.config/i3/config
+mkdir -p ~/.config/i3status && ln -s ~/Code/dotfiles/i3status.conf ~/.config/i3status/config
+mkdir -p ~/.config/i3/scripts
+ln -s ~/Code/dotfiles/scripts/i3status-audio.sh ~/.config/i3/scripts/i3status-audio.sh
+ln -s ~/Code/dotfiles/scripts/i3status-wrapper.sh ~/.config/i3/scripts/i3status-wrapper.sh
+ln -s ~/Code/dotfiles/scripts/startup-terminals.sh ~/.config/i3/scripts/startup-terminals.sh
+chmod +x ~/Code/dotfiles/scripts/*.sh
+mkdir -p ~/.config/lazygit && ln -s ~/Code/dotfiles/config/lazygit/config.yml ~/.config/lazygit/config.yml
+
+# Git config (copy, don't symlink — you'll customize email per machine)
+# install.sh links if missing; this machine uses a symlink to the repo file.
+cp ~/Code/dotfiles/gitconfig ~/.gitconfig
+
+
+12. Secrets
+-----------
+Create ~/.secrets for API tokens (never committed):
+
+cat > ~/.secrets <<'EOF'
+# export ANTHROPIC_AUTH_TOKEN="..."
+# export GROK_DEPLOYMENT_KEY="..."
+EOF
+
+
+13. Optional extras (see packages/MIGRATION.md)
+----------------------------------------------------
+# Docker CE + user group
+# Google Chrome (google-chrome-stable apt repo)
+# Snaps: spotify, mattermost-desktop
+# Groups: docker wireshark plugdev dialout
+# Wireshark non-root: sudo dpkg-reconfigure wireshark-common
+
+
+14. First nvim launch
+----------------------
+Open nvim. Lazy.nvim will automatically bootstrap and install all plugins.
+Then run these inside nvim:
+
+    :LspInstall <language_server>     (e.g. clangd, lua_ls, pyright)
+    :TSInstall <language>             (e.g. c, lua, python, bash)
+    :DapInstall <debugger>            (e.g. debugpy)
+
+
+15. Verify
+----------
+Open a new terminal and check:
+
+    nvim --version          # Should show v0.12.2+
+    fzf --version           # Should be installed
+    starship --version      # Prompt should render
+    lazygit --version       # Git TUI
+    btm --version           # Process viewer
+    gdu --version           # Disk usage
+    rg --version            # ripgrep
+    fd --version            # fd-find
+    bat --version           # bat
+    tmux -V                 # tmux
+    sway --version          # compositor
+    jq --version            # status bar JSON merge
+    bluetoothctl --version  # BT + headset battery
+
+With Bluetooth headphones connected:
+
+    ~/.config/i3/scripts/i3status-audio.sh
+    # expect e.g. MOMENTUM 4(🔋100%) - 2%
+
+In nvim, try:
+    <Space>gg               # Should open lazygit
+    <Space>tt               # Should open bottom
+    <Space>tu               # Should open gdu
+    <Space>zf               # Should open fzf file finder

@@ -1,11 +1,9 @@
-[general]
 import = [
     "~/.config/alacritty/themes/themes/noctis_lux.toml"
 ]
 
 [env]
-# Set the COLORTERM environment variable to indicate true color support
-term = "xterm-256color" # This might be needed for compatibility
+TERM = "xterm-256color"
 COLORTERM = "truecolor"
 
 [scrolling]
@@ -13,7 +11,7 @@ history = 10000
 multiplier = 3 # Default is 3
 
 [font]
-size = 12.0
+size = 10.0
 
 [font.normal]
 family = "Iosevka Nerd Font"

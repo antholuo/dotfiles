@@ -1,0 +1,6 @@
+bluetui v0.8.0:
+    bluetui
+bottom v0.12.3:
+    btm
+tree-sitter-cli v0.26.9:
+    tree-sitter

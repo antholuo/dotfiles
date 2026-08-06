@@ -1,0 +1,97 @@
+{
+    "layer": "top",
+    "position": "bottom",
+    "height": 28,
+    "spacing": 4,
+
+    "modules-left": [
+        "sway/workspaces",
+        "sway/mode"
+    ],
+    "modules-center": [
+        "custom/weather"
+    ],
+    "modules-right": [
+        "custom/audio",
+        "network",
+        "battery",
+        "disk",
+        "cpu",
+        "memory",
+        "clock",
+        "tray"
+    ],
+
+    "sway/workspaces": {
+        "disable-scroll": true,
+        "all-outputs": true,
+        "format": "{name}"
+    },
+
+    "sway/mode": {
+        "format": "<span style=\"italic\">{}</span>"
+    },
+
+    "custom/weather": {
+        "exec": "$HOME/.config/waybar/weather.sh",
+        "return-type": "json",
+        "interval": 1800,
+        "tooltip": true
+    },
+
+    "custom/audio": {
+        "exec": "$HOME/.config/i3/scripts/i3status-audio.sh",
+        "interval": 5,
+        "signal": 8,
+        "tooltip": false,
+        "format": "♪ {}"
+    },
+
+    "network": {
+        "format-wifi": "W: ({signalStrength}% at {essid}) {ipaddr}",
+        "format-ethernet": "E: {ipaddr}",
+        "format-linked": "E: (no IP)",
+        "format-disconnected": "net: down",
+        "tooltip-format": "{ifname}: {ipaddr}/{cidr}"
+    },
+
+    "battery": {
+        "states": {
+            "warning": 25,
+            "critical": 10
+        },
+        "format": "{status} {capacity}% {time}",
+        "format-time": "{H}h{M}m",
+        "format-plugged": "⚡ {capacity}%",
+        "format-charging": "↑ {capacity}% {time}",
+        "format-discharging": "↓ {capacity}% {time}",
+        "format-full": "full {capacity}%"
+    },
+
+    "disk": {
+        "interval": 30,
+        "path": "/",
+        "format": "{free}"
+    },
+
+    "cpu": {
+        "interval": 5,
+        "format": "{load}"
+    },
+
+    "memory": {
+        "interval": 5,
+        "format": "{used:0.1f}G | {avail:0.1f}G",
+        "tooltip-format": "RAM: {used:0.1f}G / {total:0.1f}G ({percentage}%)"
+    },
+
+    "clock": {
+        "interval": 1,
+        "format": "{:%Y-%m-%d %H:%M:%S}",
+        "tooltip-format": "<tt>{:%A, %B %d %Y}</tt>"
+    },
+
+    "tray": {
+        "spacing": 8
+    }
+}

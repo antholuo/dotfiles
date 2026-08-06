@@ -1,0 +1,227 @@
+Migration Guide — Fresh Ubuntu Machine
+=======================================
+Source OS : Ubuntu 26.04 LTS (Resolute)
+Session   : Sway + swaybar + i3status (weather + audio wrapper)
+Editor    : Neovim (AstroNvim, v0.12.2)
+Updated   : 2026-07-07
+
+The fastest path is:  clone → ./install.sh → finish the manual steps below.
+Everything in the AUTOMATED section is handled by install.sh.
+The MANUAL sections document what the script cannot do for you.
+
+Flags:
+  --from=USER@HOST   Pull secrets and SSH keys from an existing machine
+
+Example (migrating from nuc1):
+  ./install.sh --from=anni@nuc1
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 0. PRE-FLIGHT: SSH KEYS  (manual — do first)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+You need an SSH key before you can clone the dotfiles repo from GitHub.
+
+Option A — copy your existing key from the old machine:
+  scp -r oldmachine:~/.ssh ~/.ssh
+  chmod 700 ~/.ssh && chmod 600 ~/.ssh/id_* && chmod 644 ~/.ssh/*.pub
+
+Option B — generate a new key:
+  ssh-keygen -t ed25519 -C "your.email@example.com"
+  # Then add ~/.ssh/id_ed25519.pub to GitHub → Settings → SSH keys
+
+Option C — transfer via USB/secure method.
+
+Configure SSH hosts if needed:
+  nano ~/.ssh/config
+  # Example:
+  #   Host github.com
+  #       IdentityFile ~/.ssh/id_ed25519
+  #       User git
+
+Test access:
+  ssh -T git@github.com
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 1. CLONE DOTFILES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+mkdir -p ~/Code
+git clone git@github.com:antholuo/dotfiles.git ~/Code/dotfiles
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 2. RUN INSTALL.SH  (automated)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cd ~/Code/dotfiles
+chmod +x install.sh
+./install.sh
+
+This installs:
+  • apt packages  (see packages/apt-core.txt for the full list)
+  • Iosevka Nerd Font
+  • Neovim v0.12.2  → /opt/nvim-linux-x86_64/bin/nvim
+  • fzf            → ~/.fzf/
+  • Starship prompt → /usr/local/bin/starship
+  • Rust + Cargo
+  • tree-sitter-cli, bluetui  (cargo)
+  • lazygit, gdu             (/usr/local/bin)
+  • Alacritty themes
+  • Flameshot grim config
+  • Symlinks for: bashrc, tmux.conf, gitconfig, nvim, alacritty, sway, i3, lazygit
+  • ~/.secrets template
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 3. SECRETS  (manual — or automatic with --from)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+If you used --from=USER@HOST, ~/.secrets and ~/.ssh were copied automatically.
+Otherwise, fill in the template install.sh created:
+
+  nano ~/.secrets
+
+Add (as needed):
+  export ANTHROPIC_AUTH_TOKEN="sk-ant-..."
+  export GROK_DEPLOYMENT_KEY="..."
+  # any other API keys / tokens
+
+~/.secrets is sourced by .bashrc and must never be committed.
+
+If --from copied a differing ~/.secrets it was saved as ~/.secrets.from —
+review and merge:  diff ~/.secrets ~/.secrets.from
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 4. GIT IDENTITY  (manual, check first)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+install.sh symlinks dotfiles/gitconfig to ~/.gitconfig if no gitconfig exists.
+The repo gitconfig has:  name = Anthony Luo / email = antholuo@users.noreply.github.com
+
+If you need per-machine or per-repo overrides:
+  git config --global user.email "different@email.com"
+  # or in a specific repo:
+  git config user.email "different@email.com"
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 5. USER GROUPS  (manual, requires re-login)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+sudo usermod -aG docker,wireshark,plugdev,dialout "$USER"
+
+# Allow Wireshark capture as non-root:
+sudo dpkg-reconfigure wireshark-common   # choose "Yes"
+
+# Log out and back in (or `newgrp docker`) for groups to take effect.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 6. DOCKER CE  (optional / work)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Add Docker's official GPG key and apt source, then:
+sudo apt-get install -y \
+    docker-ce docker-ce-cli containerd.io \
+    docker-buildx-plugin docker-compose-plugin
+
+# Full instructions: https://docs.docker.com/engine/install/ubuntu/
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 7. GOOGLE CHROME  (optional)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+wget -q -O /tmp/google-chrome.deb \
+    https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+sudo dpkg -i /tmp/google-chrome.deb
+sudo apt-get install -f -y     # fix any dependency gaps
+rm /tmp/google-chrome.deb
+
+# Alternatively, adding the google-chrome apt repo gives you auto-updates.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 8. SNAPS  (optional / user-facing apps)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+sudo snap install spotify
+sudo snap install mattermost-desktop
+# firefox is usually preinstalled on Ubuntu
+
+# Note: the `bottom` snap (btm) is also available but cargo install is preferred
+# (already handled by install.sh).
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 9. OPTIONAL TOOLS  (if install.sh skipped any)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+a) Network Manager applet (used by sway bar):
+   sudo apt-get install -y network-manager-gnome
+   # nm-applet provides the network tray icon called in sway/config.
+
+b) asammdf (MDF/CAN log analysis GUI):
+   # install.sh creates ~/.venv/asammdf and installs asammdf[gui] via pip.
+   # Manual equivalent:
+   #   python3 -m venv ~/.venv/asammdf
+   #   ~/.venv/asammdf/bin/pip install 'asammdf[gui]'
+   #   ~/.venv/asammdf/bin/asammdf
+
+c) Audio utilities (if not already installed):
+   sudo apt-get install -y alsa-utils
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 10. NEOVIM FIRST LAUNCH
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Open nvim — Lazy.nvim will auto-bootstrap and install all plugins (wait ~1 min).
+Then inside nvim run:
+
+  :LspInstall clangd       # C/C++
+  :LspInstall lua_ls       # Lua
+  :LspInstall pyright      # Python
+  :TSInstall c lua python bash
+  :DapInstall debugpy      # Python debugger
+
+Plugin versions are pinned in lazy-lock.json in the dotfiles repo.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 11. VERIFY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Open a new terminal after sourcing .bashrc, then check:
+
+  nvim --version          # v0.12.2
+  fzf --version
+  starship --version
+  lazygit --version
+  btm --version
+  gdu --version
+  rg --version
+  fd --version
+  bat --version
+  tmux -V
+  sway --version
+  jq --version
+  bluetoothctl --version
+
+With Bluetooth headphones connected:
+  ~/.config/i3/scripts/i3status-audio.sh
+  # expect: MOMENTUM 4(🔋100%) - 2%
+
+In nvim:
+  <Space>gg               # lazygit
+  <Space>tt               # bottom (process viewer)
+  <Space>tu               # gdu (disk usage)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ KNOWN ISSUES / GOTCHAS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• nm-applet not in apt-core.txt
+  sway/config calls `nm-applet --indicator` for the network tray icon.
+  Install manually: sudo apt-get install -y network-manager-gnome
+  (Added as step 9a above.)
+
+• startup-terminals.sh opens ~/Code and ~ by default
+  Edit scripts/startup-terminals.sh if you want different workspaces/sessions.
+
+• sway/config previously had hardcoded /home/anni/ paths
+  These have been fixed to use $HOME — safe for any username.
+  (i3_config bar status_command and sway/config exec line.)

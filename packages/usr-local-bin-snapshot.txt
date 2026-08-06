@@ -1,0 +1,9 @@
+# /usr/local/bin inventory (sanitized public snapshot)
+total 53612
+drwxr-xr-x  2 root root     4096 Jun 23 15:08 .
+drwxr-xr-x 10 root root     4096 Feb 15  2025 ..
+lrwxrwxrwx  1 root root       15 Jun 15 16:24 bat -> /usr/bin/batcat
+lrwxrwxrwx  1 root root       15 Jun 15 16:24 fd -> /usr/bin/fdfind
+-rwxr-xr-x  1 root root 23666990 Jun 15 16:29 gdu
+-rwxr-xr-x  1 root root 19062968 Jun 15 16:29 lazygit
+-rwxr-xr-x  1 root root 12147096 Apr 30 12:38 starship
