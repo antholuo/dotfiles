@@ -392,25 +392,31 @@ else
 fi
 
 # --------------------------------------------------------------------------
-# 15. asammdf (MDF/CAN log GUI) in ~/.venv/asammdf
+# 15. asammdf (MDF/CAN log GUI) in ~/.venv/asammdf — optional
 # --------------------------------------------------------------------------
-ASAMMDF_VENV="$HOME/.venv/asammdf"
-if [ ! -x "$ASAMMDF_VENV/bin/asammdf" ]; then
-    info "Installing asammdf[gui] into $ASAMMDF_VENV ..."
-    mkdir -p "$HOME/.venv"
-    if python3 -m venv "$ASAMMDF_VENV" \
-        && "$ASAMMDF_VENV/bin/pip" install --upgrade pip \
-        && "$ASAMMDF_VENV/bin/pip" install 'asammdf[gui]'; then
-        ok "asammdf[gui] installed → $ASAMMDF_VENV"
-        info "  Run:  $ASAMMDF_VENV/bin/asammdf"
-        info "  Or:    source $ASAMMDF_VENV/bin/activate && asammdf"
+# asammdf is considered an extra; to enable, set INSTALL_EXTRAS=1 in your
+# environment before running the installer.
+if [ "${INSTALL_EXTRAS:-0}" = "1" ]; then
+    ASAMMDF_VENV="$HOME/.venv/asammdf"
+    if [ ! -x "$ASAMMDF_VENV/bin/asammdf" ]; then
+        info "Installing asammdf[gui] into $ASAMMDF_VENV ..."
+        mkdir -p "$HOME/.venv"
+        if python3 -m venv "$ASAMMDF_VENV" \
+            && "$ASAMMDF_VENV/bin/pip" install --upgrade pip \
+            && "$ASAMMDF_VENV/bin/pip" install 'asammdf[gui]'; then
+            ok "asammdf[gui] installed → $ASAMMDF_VENV"
+            info "  Run:  $ASAMMDF_VENV/bin/asammdf"
+            info "  Or:    source $ASAMMDF_VENV/bin/activate && asammdf"
+        else
+            warn "asammdf[gui] install failed — install manually when network allows:"
+            warn "  python3 -m venv $ASAMMDF_VENV"
+            warn "  $ASAMMDF_VENV/bin/pip install 'asammdf[gui]'"
+        fi
     else
-        warn "asammdf[gui] install failed — install manually when network allows:"
-        warn "  python3 -m venv $ASAMMDF_VENV"
-        warn "  $ASAMMDF_VENV/bin/pip install 'asammdf[gui]'"
+        ok "asammdf already present: $ASAMMDF_VENV/bin/asammdf"
     fi
 else
-    ok "asammdf already present: $ASAMMDF_VENV/bin/asammdf"
+    info "Skipping asammdf install (set INSTALL_EXTRAS=1 to enable)"
 fi
 
 # --------------------------------------------------------------------------
